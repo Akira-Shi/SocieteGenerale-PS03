@@ -13,7 +13,7 @@
   --bg-base:#0C0F18; --bg-card:#131722; --bg-card2:#1A1F2E; --bg-hover:#1E2435;
   --border:rgba(255,255,255,.07); --border-red:rgba(230,0,40,.35);
   --text-primary:#EEF0F4; --text-muted:#6B748A; --text-sub:#9AA3B5;
-  --green:#10B981; --amber:#F59E0B; --rose:#F43F5E; --blue:#3B82F6;
+  --green:#10B981; --amber:#F59E0B; --rose:#F43F5E; --blue:#3B82F6; --yellow:#FACC15; --orange:#FB923C;
   --font:'Inter',sans-serif; --mono:'JetBrains Mono',monospace;
   --sidebar-w:224px; --radius:10px;
 }
@@ -107,6 +107,35 @@ body{background:var(--bg-base);color:var(--text-primary);font-family:var(--font)
 .chart-title{font-size:.88rem;font-weight:600;}
 .chart-sub{font-size:.72rem;color:var(--text-muted);margin-top:2px;}
 .chart-canvas-wrap{position:relative;height:198px;}
+.framework-grid{display:grid;grid-template-columns:1.4fr .9fr;gap:13px;}
+.framework-table-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;}
+.framework-table{width:100%;border-collapse:collapse;}
+.framework-table th,.framework-table td{padding:10px 0;border-bottom:1px solid var(--border);font-size:.78rem;}
+.framework-table th{font-size:.64rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);text-align:left;}
+.framework-table td:last-child,.framework-table th:last-child{text-align:right;}
+.framework-table tr:last-child td{border-bottom:none;}
+.framework-name{font-weight:600;color:var(--text-primary);}
+.framework-sub{font-family:var(--mono);font-size:.72rem;color:var(--text-muted);}
+.metadata-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;}
+.meta-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;display:flex;flex-direction:column;gap:7px;}
+.meta-label{font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);}
+.meta-value{font-size:1rem;font-weight:700;color:var(--text-primary);}
+.meta-sub{font-size:.74rem;color:var(--text-muted);}
+.recommend-card{background:linear-gradient(180deg, rgba(230,0,40,.08), rgba(19,23,34,1));border:1px solid rgba(230,0,40,.24);border-radius:var(--radius);padding:20px 22px;display:flex;flex-direction:column;gap:14px;}
+.recommend-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.recommend-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.recommend-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start;}
+.recommend-bullet{width:22px;height:22px;border-radius:50%;background:rgba(230,0,40,.14);color:var(--sg-red);display:flex;align-items:center;justify-content:center;font-size:.78rem;flex-shrink:0;}
+.recommend-copy{font-size:.78rem;color:var(--text-sub);line-height:1.6;}
+.severity-low{border-color:rgba(250,204,21,.28);}
+.severity-medium{border-color:rgba(251,146,60,.28);}
+.severity-high{border-color:rgba(230,0,40,.28);}
+.sev-low .pill-count,.sev-low .pill-icon{color:var(--yellow);}
+.sev-medium .pill-count,.sev-medium .pill-icon{color:var(--orange);}
+.sev-high .pill-count,.sev-high .pill-icon{color:var(--sg-red);}
+.row-high{box-shadow:inset 3px 0 0 rgba(230,0,40,.7);}
+.row-medium{box-shadow:inset 3px 0 0 rgba(251,146,60,.7);}
+.row-low{box-shadow:inset 3px 0 0 rgba(250,204,21,.7);}
 
 /* ── ANOMALY PILLS ── */
 .pill-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
@@ -136,8 +165,8 @@ tbody tr:hover{background:var(--bg-hover);}
 td{padding:10px 15px;vertical-align:middle;color:var(--text-sub);white-space:nowrap;}
 td.mono{font-family:var(--mono);font-size:.76rem;}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:.7rem;font-weight:600;white-space:nowrap;}
-.b-stale{background:rgba(245,158,11,.1);color:var(--amber);}
-.b-lowconf{background:rgba(59,130,246,.1);color:var(--blue);}
+.b-stale{background:rgba(250,204,21,.12);color:var(--yellow);}
+.b-lowconf{background:rgba(251,146,60,.12);color:var(--orange);}
 .b-rejected{background:rgba(230,0,40,.1);color:var(--sg-red);}
 .b-approved{background:rgba(16,185,129,.1);color:var(--green);}
 .b-pending{background:rgba(148,163,184,.1);color:#94A3B8;}
@@ -194,8 +223,11 @@ td.mono{font-family:var(--mono);font-size:.76rem;}
 
 @media(max-width:860px){
   .sidebar{display:none;}
-  .cards-row,.pill-row{grid-template-columns:repeat(2,1fr);}
-  .mid-row,.report-grid{grid-template-columns:1fr;}
+  .cards-row,.pill-row,.metadata-grid,.recommend-list{grid-template-columns:repeat(2,1fr);}
+  .mid-row,.report-grid,.framework-grid{grid-template-columns:1fr;}
+}
+@media(max-width:640px){
+  .cards-row,.pill-row,.metadata-grid,.recommend-list{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -311,6 +343,59 @@ td.mono{font-family:var(--mono);font-size:.76rem;}
           <div class="chart-canvas-wrap"><canvas id="fwChart"></canvas></div>
         </div>
       </div>
+
+      <div class="framework-grid">
+        <div class="framework-table-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Framework Breakdown</div>
+              <div class="chart-sub">Passed requirements, totals, and coverage by framework</div>
+            </div>
+          </div>
+          <table class="framework-table">
+            <thead>
+              <tr><th>Framework</th><th>Passed / Total</th><th>Compliance</th></tr>
+            </thead>
+            <tbody id="fwTableBody">
+              <tr><td colspan="3" class="empty">Waiting for backend data.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="recommend-card">
+          <div class="recommend-head">
+            <div>
+              <div class="chart-title">Actionable Recommendations</div>
+              <div class="chart-sub">Generated from current backend-calculated metrics</div>
+            </div>
+          </div>
+          <div class="recommend-list" id="recommendList">
+            <div class="recommend-item"><div class="recommend-bullet">!</div><div class="recommend-copy">Recommendations will appear after the dashboard loads.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="metadata-grid">
+        <div class="meta-card">
+          <div class="meta-label">Last Updated</div>
+          <div class="meta-value" id="mUpdated">â€”</div>
+          <div class="meta-sub">Latest evidence refresh timestamp</div>
+        </div>
+        <div class="meta-card">
+          <div class="meta-label">Generated</div>
+          <div class="meta-value" id="mGenerated">â€”</div>
+          <div class="meta-sub">Current dashboard generation time</div>
+        </div>
+        <div class="meta-card">
+          <div class="meta-label">Total Requirements</div>
+          <div class="meta-value" id="mReqs">â€”</div>
+          <div class="meta-sub">Controls currently evaluated</div>
+        </div>
+        <div class="meta-card">
+          <div class="meta-label">Coverage</div>
+          <div class="meta-value" id="mCoverage">â€”</div>
+          <div class="meta-sub">Valid evidence coverage across all requirements</div>
+        </div>
+      </div>
     </div>
 
     <!-- ═══ ANOMALIES ═══ -->
@@ -325,20 +410,20 @@ td.mono{font-family:var(--mono);font-size:.76rem;}
 
       <!-- PILLS -->
       <div class="pill-row">
-        <div class="pill">
+        <div class="pill sev-low severity-low">
           <div class="pill-top"><div class="pill-count c-amber" id="pStale">—</div><div class="pill-icon">🕐</div></div>
           <div class="pill-label">Stale Records</div>
-          <div class="pill-desc">Evidence older than 90 days</div>
+          <div class="pill-desc">LOW severity â€¢ Evidence older than 90 days</div>
         </div>
-        <div class="pill">
+        <div class="pill sev-medium severity-medium">
           <div class="pill-top"><div class="pill-count c-blue" id="pLow">—</div><div class="pill-icon">⬇</div></div>
           <div class="pill-label">Low Confidence</div>
-          <div class="pill-desc">Confidence score below 0.70</div>
+          <div class="pill-desc">MEDIUM severity â€¢ Confidence score below 0.70</div>
         </div>
-        <div class="pill">
+        <div class="pill sev-high severity-high">
           <div class="pill-top"><div class="pill-count c-red" id="pRej">—</div><div class="pill-icon">✕</div></div>
           <div class="pill-label">Rejected Records</div>
-          <div class="pill-desc">Rejected in review process</div>
+          <div class="pill-desc">HIGH severity â€¢ Rejected in review process</div>
         </div>
       </div>
 
@@ -583,6 +668,40 @@ async function api(path){
   return r.json();
 }
 
+function normalizeFrameworks(data){
+  const frameworks=data?.frameworks??data;
+  if(!frameworks||Array.isArray(frameworks)) return frameworks||[];
+  return Object.entries(frameworks).map(([framework,value])=>({
+    framework,
+    score:parseFloat(value?.percent??value?.score??value?.compliance_score??0),
+    passed:value?.passed??0,
+    total:value?.total??0
+  }));
+}
+
+function normalizeAnomalies(raw){
+  if(Array.isArray(raw)) return raw;
+  if(Array.isArray(raw?.anomalies)) return raw.anomalies;
+  const groups=[
+    ['stale',raw?.stale?.sample_records||[]],
+    ['low_confidence',raw?.low_confidence?.sample_records||[]],
+    ['rejected',raw?.rejected?.sample_records||[]]
+  ];
+  return groups.flatMap(([type,records])=>records.map(record=>({
+    id:record.evidence_id,
+    record_id:record.evidence_id,
+    policy:record.policy_ref?.split('-')?.[0]||'',
+    framework:record.policy_ref?.split('-')?.[0]||'',
+    anomaly_type:type,
+    type,
+    review_status:record.review_status,
+    confidence_score:parseFloat(record.confidence_score||0),
+    freshness:record.freshness_status,
+    created_at:'',
+    days_since_collected:record.days_since_collected
+  })));
+}
+
 /* ══════════════════════════════════════════
    STATUS INDICATOR
 ══════════════════════════════════════════ */
@@ -655,9 +774,9 @@ async function loadSummary(){
     data=MOCK.summary; fwData=MOCK.fwArr; setStatus('demo');
   }
   const score=parseFloat(data.overall_score??data.compliance_score??data.score??0);
-  const valid=data.valid_evidence??data.valid_count??0;
+  const valid=data.valid_evidence??data.valid_count??data.passed??0;
   const total=data.total_evidence??data.total_records??0;
-  const anom=data.total_anomalies??data.anomaly_count??0;
+  const anom=data.total_anomalies??data.anomaly_count??data.anomalies??0;
   document.getElementById('vScore').textContent=score.toFixed(1)+'%';
   document.getElementById('vValid').textContent=valid;
   document.getElementById('vValidSub').textContent=`${total?((valid/total)*100).toFixed(1):0}% of total records`;
@@ -665,7 +784,7 @@ async function loadSummary(){
   document.getElementById('vTotal').textContent=total;
   document.getElementById('aBadge').textContent=anom;
   animateGauge(score);
-  const arr=Array.isArray(fwData)?fwData:Object.entries(fwData).map(([k,v])=>({framework:k,score:v}));
+  const arr=normalizeFrameworks(fwData);
   buildChart(arr);
 }
 
@@ -679,13 +798,7 @@ async function loadAnomalies(){
     raw=MOCK.anomalies; if(!isDemoMode) setStatus('demo');
   }
 
-  if(Array.isArray(raw)) allAnom=raw;
-  else if(raw.anomalies) allAnom=raw.anomalies;
-  else allAnom=[
-    ...(raw.stale||[]).map(r=>({...r,type:'stale'})),
-    ...(raw.low_confidence||[]).map(r=>({...r,type:'low_confidence'})),
-    ...(raw.rejected||[]).map(r=>({...r,type:'rejected'})),
-  ];
+  allAnom=normalizeAnomalies(raw);
 
   const stale=allAnom.filter(a=>(a.type||a.anomaly_type)==='stale').length;
   const lowc =allAnom.filter(a=>(a.type||a.anomaly_type)==='low_confidence').length;
@@ -696,7 +809,7 @@ async function loadAnomalies(){
   document.getElementById('aBadge').textContent=allAnom.length;
 
   // Populate policy filter
-  const policies=[...new Set(allAnom.map(a=>a.policy||a.framework).filter(Boolean))].sort();
+  const policies=[...new Set(allAnom.map(a=>a.policy||a.framework||a.policy_ref?.split('-')?.[0]).filter(Boolean))].sort();
   const psel=document.getElementById('aPolicyF');
   psel.innerHTML='<option value="">All Policies</option>'+policies.map(p=>`<option>${p}</option>`).join('');
 
@@ -709,8 +822,8 @@ function filteredAnom(){
   const q=document.getElementById('aSearch').value.toLowerCase();
   return allAnom.filter(a=>{
     const at=(a.type||a.anomaly_type||'').toLowerCase();
-    const ap=(a.policy||a.framework||'').toLowerCase();
-    const aid=(a.id||a.record_id||'').toLowerCase();
+    const ap=(a.policy||a.framework||a.policy_ref?.split('-')?.[0]||'').toLowerCase();
+    const aid=(a.id||a.record_id||a.evidence_id||'').toLowerCase();
     return (!t||at===t)&&(!p||ap===p)&&(!q||ap.includes(q)||aid.includes(q));
   }).sort((a,b)=>{
     const k=anomSort.key;
@@ -778,7 +891,14 @@ async function loadEvidence(){
       .slice(0,limit);
     if(!isDemoMode) setStatus('demo');
   }
-  allEv=Array.isArray(raw)?raw:raw.evidence||raw.records||[];
+  const records=Array.isArray(raw)?raw:raw.evidence||raw.records||[];
+  allEv=records.map(r=>({
+    ...r,
+    id:r.id||r.record_id||r.evidence_id||'',
+    policy:r.policy||r.framework||r.policy_ref?.split('-')?.[0]||'',
+    freshness:r.freshness||r.freshness_status||(r.is_stale?'stale':'fresh'),
+    date:r.evidence_date||r.date||r.created_at||r.collected_at||''
+  }));
   evPage=1; renderEv();
 }
 

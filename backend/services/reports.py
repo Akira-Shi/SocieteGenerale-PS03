@@ -65,41 +65,46 @@ def generate_pdf_report(
     output_path = output_directory / f"compliance_report_{timestamp}.pdf"
 
     lines = [
-        "Compliance Evidence Analyzer Report",
+        "COMPLIANCE EVIDENCE ANALYZER",
+        "Executive Compliance Report",
+        "=" * 72,
+        f"Generated: {dashboard_summary.get('generated_at', datetime.now().isoformat())}",
+        f"Last Updated: {dashboard_summary['last_updated'] or 'N/A'}",
         "",
-        "Executive Summary",
-        f"Compliance Score: {score_summary['overall_score']}%",
-        f"Evidence Coverage: {dashboard_summary['evidence_coverage']} / {dashboard_summary['total_evidence']}",
-        f"Anomaly Count: {anomaly_summary['total_anomalies']}",
-        f"Last Updated: {dashboard_summary['last_updated']}",
+        "1. Executive Summary",
+        "-" * 72,
+        f"Compliance Score    : {score_summary['overall_score']}%",
+        (
+            f"Evidence Coverage   : {dashboard_summary['evidence_coverage']}% "
+            f"({dashboard_summary['valid_evidence']} / {dashboard_summary['total_evidence']})"
+        ),
+        f"Total Requirements  : {dashboard_summary.get('total_requirements', score_summary['total'])}",
+        f"Anomaly Count       : {anomaly_summary['total_anomalies']}",
         "",
-        "Framework Breakdown",
-        "Framework | Passed | Total | %",
+        "2. Framework Breakdown",
+        "-" * 72,
+        "Framework           Passed   Total   Compliance",
+        "-" * 72,
     ]
 
     for framework, values in score_summary["frameworks"].items():
         lines.append(
-            f"{framework} | {values['passed']} | {values['total']} | {values['percent']}"
+            f"{framework:<18} {values['passed']:>6}   {values['total']:>5}   {values['percent']:>9}%"
         )
 
     lines.extend(
         [
             "",
-            "Anomalies",
-            (
-                f"Stale: {anomaly_summary['stale']['count']} "
-                f"({anomaly_summary['stale']['severity']})"
-            ),
-            (
-                f"Low Confidence: {anomaly_summary['low_confidence']['count']} "
-                f"({anomaly_summary['low_confidence']['severity']})"
-            ),
-            (
-                f"Rejected: {anomaly_summary['rejected']['count']} "
-                f"({anomaly_summary['rejected']['severity']})"
-            ),
+            "3. Anomaly Summary",
+            "-" * 72,
+            "Type                Severity   Count   Definition",
+            "-" * 72,
+            f"Rejected Evidence   HIGH       {anomaly_summary['rejected']['count']:<5}  {anomaly_summary['rejected']['definition']}",
+            f"Low Confidence      MEDIUM     {anomaly_summary['low_confidence']['count']:<5}  {anomaly_summary['low_confidence']['definition']}",
+            f"Stale Evidence      LOW        {anomaly_summary['stale']['count']:<5}  {anomaly_summary['stale']['definition']}",
             "",
-            "Recommendations",
+            "4. Recommendations",
+            "-" * 72,
         ]
     )
 

@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
 from backend.services.anomalies import summarize_anomalies
@@ -19,7 +20,14 @@ REPORTS_DIR = BASE_DIR / "reports"
 DATE_COLUMNS = ["collected_at", "reviewed_at", "created_at", "updated_at"]
 
 app = FastAPI(title="Compliance Evidence Analyzer", version="1.0.0")
-app.state.evidence_records: list[dict[str, Any]] = []
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+app.state.evidence_records: list[dict[str, Any]] | None = None
 
 
 def _parse_datetime(value: str) -> datetime | None:
@@ -29,6 +37,13 @@ def _parse_datetime(value: str) -> datetime | None:
         return datetime.fromisoformat(value)
     except (TypeError, ValueError):
         return None
+
+
+def _safe_float(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
 
 
 def load_evidence_data() -> list[dict[str, Any]]:
@@ -57,8 +72,10 @@ def load_evidence_data() -> list[dict[str, Any]]:
         for column in DATE_COLUMNS:
             merged[column] = _parse_datetime(str(merged.get(column, "")))
 
-        merged["confidence_score"] = float(merged.get("confidence_score", 0.0))
-        merged["framework"] = extract_framework(str(merged.get("policy_ref", "")))
+        merged["confidence_score"] = _safe_float(merged.get("confidence_score", 0.0))
+        merged["framework"] = str(
+            merged.get("framework") or extract_framework(str(merged.get("policy_ref", "")))
+        )
 
         collected_at = merged.get("collected_at")
         merged["days_since_collected"] = (today - collected_at.date()).days if collected_at else 0
@@ -69,7 +86,7 @@ def load_evidence_data() -> list[dict[str, Any]]:
 
 def get_evidence_records() -> list[dict[str, Any]]:
     records = app.state.evidence_records
-    if not records:
+    if records is None:
         raise HTTPException(status_code=503, detail="Evidence data is not loaded.")
     return records
 
@@ -79,14 +96,31 @@ def build_recommendations(
 ) -> list[str]:
     recommendations: list[str] = []
 
-    if anomaly_summary["stale"]["count"] > 0:
-        recommendations.append("Refresh evidence artifacts older than 90 days.")
-    if anomaly_summary["low_confidence"]["count"] > 0:
-        recommendations.append("Review low-confidence evidence and improve source quality.")
-    if anomaly_summary["rejected"]["count"] > 0:
-        recommendations.append("Rework rejected submissions before the next compliance review.")
-    if score_summary["overall_score"] < 80:
-        recommendations.append("Prioritize framework gaps with the lowest pass percentages.")
+    if score_summary["total"] == 0:
+        return ["No evidence records are available. Load data to generate compliance insights."]
+
+    stale_count = anomaly_summary["stale"]["count"]
+    low_confidence_count = anomaly_summary["low_confidence"]["count"]
+    rejected_count = anomaly_summary["rejected"]["count"]
+
+    if stale_count > 0:
+        recommendations.append(f"Review {stale_count} stale evidence records and re-collect outdated artifacts.")
+    if low_confidence_count > 0:
+        recommendations.append(f"Validate {low_confidence_count} low-confidence records before the next audit review.")
+    if rejected_count > 0:
+        recommendations.append(f"Investigate {rejected_count} rejected submissions and assign remediation owners.")
+
+    framework_scores = score_summary.get("frameworks", {})
+    if framework_scores:
+        weakest_framework = min(
+            framework_scores.items(),
+            key=lambda item: item[1].get("percent", 0.0),
+        )
+        weakest_name, weakest_values = weakest_framework
+        if weakest_values.get("total", 0) > 0 and weakest_values.get("percent", 0.0) < 85:
+            recommendations.append(
+                f"Prioritize {weakest_name} controls with missing evidence ({weakest_values['passed']} of {weakest_values['total']} passed)."
+            )
 
     return recommendations
 
@@ -97,14 +131,20 @@ def build_dashboard_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
 
     updated_values = [record.get("updated_at") for record in records if record.get("updated_at")]
     last_updated = max(updated_values).isoformat() if updated_values else ""
+    generated_at = datetime.now().isoformat()
 
     return {
         "compliance_score": score_summary["overall_score"],
         "evidence_coverage": score_summary["overall_score"],
+        "valid_evidence": score_summary["passed"],
         "total_evidence": score_summary["total"],
+        "total_requirements": score_summary["total"],
         "anomalies": anomaly_summary["total_anomalies"],
+        "anomaly_count": anomaly_summary["total_anomalies"],
+        "total_anomalies": anomaly_summary["total_anomalies"],
         "recommendations": build_recommendations(score_summary, anomaly_summary),
         "last_updated": last_updated,
+        "generated_at": generated_at,
     }
 
 
